@@ -130,16 +130,6 @@ input {
     
 }
 
-button.add {
-    width: 30%;
-    cursor: pointer;
-    background: green;
-    color: white;
-    font-weight: bold;
-    border: none;
-    height: 120px;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
+
     
 }
