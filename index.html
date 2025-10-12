@@ -1,29 +1,440 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    
-    <link rel="stylesheet" href="https://cdn.materialdesignicons.com/6.5.95/css/materialdesignicons.min.css">
-
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estacionamento Inteligente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+    }
+  </style>
 </head>
-<body>
-    <h1>Lista de Tarefas</h1>
+<body class="bg-gray-100">
+  <!-- Container Principal -->
+  <div id="app" class="min-h-screen">
+    <!-- Página Inicial -->
+    <div id="home" class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-green-500 text-white">
+      <h1 class="text-4xl font-bold mb-4">Estacionamento Inteligente</h1>
+      <p class="text-xl mb-2">Vagas Disponíveis: <span id="vagas-disponiveis">0</span>/<span id="total-vagas">50</span></p>
+      <p class="text-lg mb-4">Tarifa: R$<span id="tarifa-hora">5</span>/hora</p>
+      <div class="flex flex-col items-center gap-4 w-full max-w-md">
+        <input id="placa-entrada" type="text" placeholder="Placa (ex: ABC1234 ou ABC1D23)" class="p-2 rounded text-black w-full">
+        <button onclick="registrarEntrada()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+          <i class="fas fa-car mr-2"></i> Registrar Entrada
+        </button>
+        <button onclick="mostrarCadastro()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
+          <i class="fas fa-plus-circle mr-2"></i> Cadastrar Veículo
+        </button>
+        <button onclick="mostrarReserva()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
+          <i class="fas fa-calendar-check mr-2"></i> Reservar Vaga
+        </button>
+        <button onclick="mostrarAdmin()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center">
+          <i class="fas fa-user-shield mr-2"></i> Painel de Administração
+        </button>
+      </div>
+      <!-- Formulário de Cadastro de Veículo -->
+      <div id="cadastro-form" class="hidden mt-4 bg-white text-black p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Cadastrar Veículo</h2>
+        <input id="placa-cadastro-home" type="text" placeholder="Placa (ex: ABC1234 ou ABC1D23)" class="p-2 rounded w-full mb-2">
+        <input id="modelo-cadastro-home" type="text" placeholder="Modelo" class="p-2 rounded w-full mb-2">
+        <input id="proprietario-cadastro-home" type="text" placeholder="Proprietário" class="p-2 rounded w-full mb-2">
+        <button onclick="cadastrarVeiculoHome()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Cadastrar</button>
+        <button onclick="fecharCadastro()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded mt-2">Cancelar</button>
+      </div>
+      <!-- Formulário de Reserva -->
+      <div id="reserva-form" class="hidden mt-4 bg-white text-black p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Reservar Vaga</h2>
+        <input id="placa-reserva" type="text" placeholder="Placa (ex: ABC1234 ou ABC1D23)" class="p-2 rounded w-full mb-2">
+        <input id="data-reserva" type="datetime-local" class="p-2 rounded w-full mb-2">
+        <button onclick="salvarReserva()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Confirmar Reserva</button>
+        <button onclick="fecharReserva()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded mt-2">Cancelar</button>
+      </div>
+    </div>
 
-    <header>
-        <input id="inputTarefa" type="text" placeholder="Digite sua Tarefa">
-        <button onclick="addTarefa()" id="btn-add" class="add">Adicionar</button>
-    </header>
-
-    <main id="arealista">
-
-
+    <!-- Painel de Administração -->
+    <div id="admin-panel" class="hidden min-h-screen bg-gray-100 p-6">
+      <div id="login-admin" class="flex flex-col items-center justify-center min-h-screen">
+        <h2 class="text-3xl font-bold mb-4 text-blue-800">Login Admin</h2>
+        <input id="senha-admin" type="password" placeholder="Digite a senha" class="p-2 rounded w-full max-w-xs mb-2">
+        <button onclick="loginAdmin()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Entrar</button>
+      </div>
+      <div id="admin-content" class="hidden">
+        <h2 class="text-3xl font-bold mb-4 text-blue-800">Painel de Controle</h2>
+        <!-- Configuração de Vagas e Tarifa -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h3 class="text-xl font-semibold mb-2">Configurações</h3>
+          <label class="block mb-2">Total de Vagas:</label>
+          <input id="config-vagas" type="number" min="1" placeholder="Número de vagas" class="p-2 rounded w-full mb-2">
+          <label class="block mb-2">Tarifa por Hora (R$):</label>
+          <input id="config-tarifa" type="number" min="0" step="0.01" placeholder="Tarifa por hora" class="p-2 rounded w-full mb-2">
+          <button onclick="salvarConfiguracoes()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Salvar Configurações</button>
         </div>
+        <!-- Cadastro de Veículo -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h3 class="text-xl font-semibold mb-2">Cadastrar Veículo</h3>
+          <input id="placa-cadastro" type="text" placeholder="Placa (ex: ABC1234 ou ABC1D23)" class="p-2 rounded w-full mb-2">
+          <input id="modelo-cadastro" type="text" placeholder="Modelo" class="p-2 rounded w-full mb-2">
+          <input id="proprietario-cadastro" type="text" placeholder="Proprietário" class="p-2 rounded w-full mb-2">
+          <button onclick="cadastrarVeiculo()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Cadastrar</button>
+        </div>
+        <!-- Lista de Veículos -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h3 class="text-xl font-semibold mb-2">Veículos Cadastrados</h3>
+          <ul id="lista-veiculos" class="list-disc pl-5"></ul>
+        </div>
+        <!-- Saída de Veículo -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h3 class="text-xl font-semibold mb-2">Registrar Saída</h3>
+          <input id="placa-saida" type="text" placeholder="Placa (ex: ABC1234 ou ABC1D23)" class="p-2 rounded w-full mb-2">
+          <button onclick="registrarSaida()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">Registrar Saída</button>
+        </div>
+        <!-- Lista de Entradas Ativas -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h3 class="text-xl font-semibold mb-2">Entradas Ativas</h3>
+          <ul id="lista-entradas" class="list-disc pl-5"></ul>
+        </div>
+        <!-- Relatórios -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h3 class="text-xl font-semibold mb-2">Relatórios Financeiros</h3>
+          <p>Total Arrecadado: R$<span id="total-arrecadado">0</span></p>
+          <button onclick="gerarRelatorio()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded mt-2">Atualizar Relatório</button>
+          <button onclick="zerarRelatorio()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded mt-2 ml-2">Zerar Total</button>
+        </div>
+        <!-- Monitoramento (Simulado) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+          <h3 class="text-xl font-semibold mb-2">Monitoramento</h3>
+          <div class="bg-gray-200 h-48 flex items-center justify-center rounded">
+            <p class="text-gray-500">Simulação de Câmera de Segurança</p>
+          </div>
+          <button onclick="alert('Simulação: Câmera acessada!')" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mt-2">Visualizar Câmera</button>
+        </div>
+        <button onclick="sairAdmin()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded mt-4">Sair</button>
+      </div>
+    </div>
+  </div>
 
-    </main>
+  <script>
+    // Inicialização do localStorage
+    const initData = () => {
+      if (!localStorage.getItem('vagas')) {
+        localStorage.setItem('vagas', JSON.stringify(Array(50).fill(false))); // 50 vagas iniciais
+      }
+      if (!localStorage.getItem('veiculos')) {
+        localStorage.setItem('veiculos', JSON.stringify([]));
+      }
+      if (!localStorage.getItem('entradas')) {
+        localStorage.setItem('entradas', JSON.stringify([]));
+      }
+      if (!localStorage.getItem('reservas')) {
+        localStorage.setItem('reservas', JSON.stringify([]));
+      }
+      if (!localStorage.getItem('config_vagas')) {
+        localStorage.setItem('config_vagas', '50');
+      }
+      if (!localStorage.getItem('config_tarifa')) {
+        localStorage.setItem('config_tarifa', '5');
+      }
+    };
 
-    <script src="script.js"></script>
+    // Atualizar contagem de vagas
+    const atualizarVagas = () => {
+      const vagas = JSON.parse(localStorage.getItem('vagas') || '[]');
+      const totalVagas = parseInt(localStorage.getItem('config_vagas') || '50');
+      const vagasLivres = vagas.filter(v => !v).length;
+      document.getElementById('vagas-disponiveis').textContent = vagasLivres;
+      document.getElementById('total-vagas').textContent = totalVagas;
+      document.getElementById('tarifa-hora').textContent = parseFloat(localStorage.getItem('config_tarifa') || '5').toFixed(2);
+    };
+
+    // Atualizar lista de veículos
+    const atualizarListaVeiculos = () => {
+      const veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+      const lista = document.getElementById('lista-veiculos');
+      lista.innerHTML = '';
+      veiculos.forEach(v => {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center';
+        li.innerHTML = `Placa: ${v.placa}, Modelo: ${v.modelo}, Proprietário: ${v.proprietario} <button onclick="excluirVeiculo('${v.placa}')" class="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-sm">Excluir</button>`;
+        lista.appendChild(li);
+      });
+    };
+
+    // Excluir veículo
+    const excluirVeiculo = (placa) => {
+      const entradas = JSON.parse(localStorage.getItem('entradas') || '[]');
+      if (entradas.some(e => e.placa === placa && !e.saida)) {
+        alert('Não é possível excluir o veículo: há uma entrada ativa!');
+        return;
+      }
+      if (!confirm(`Tem certeza que deseja excluir o veículo ${placa}?`)) {
+        return;
+      }
+      const veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+      const veiculosFiltrados = veiculos.filter(v => v.placa !== placa);
+      localStorage.setItem('veiculos', JSON.stringify(veiculosFiltrados));
+      atualizarListaVeiculos();
+      alert(`Veículo ${placa} excluído com sucesso!`);
+    };
+
+    // Atualizar lista de entradas ativas
+    const atualizarListaEntradas = () => {
+      const entradas = JSON.parse(localStorage.getItem('entradas') || '[]');
+      const lista = document.getElementById('lista-entradas');
+      lista.innerHTML = '';
+      entradas.filter(e => !e.saida).forEach(e => {
+        const li = document.createElement('li');
+        li.textContent = `Placa: ${e.placa}, Entrada: ${new Date(e.entrada).toLocaleString()}`;
+        lista.appendChild(li);
+      });
+    };
+
+    // Validar placa (LLLNNNN ou LLLNLNN)
+    const validarPlaca = (placa) => {
+      const placaNormalizada = placa.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      return /^[A-Z]{3}\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/.test(placaNormalizada);
+    };
+
+    // Registrar entrada
+    const registrarEntrada = () => {
+      let placa = document.getElementById('placa-entrada').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!validarPlaca(placa)) {
+        alert('Placa inválida! Use o formato ABC1234 ou ABC1D23 (com ou sem hífen).');
+        return;
+      }
+      const vagas = JSON.parse(localStorage.getItem('vagas') || '[]');
+      const totalVagas = parseInt(localStorage.getItem('config_vagas') || '50');
+      if (vagas.length !== totalVagas) {
+        localStorage.setItem('vagas', JSON.stringify(Array(totalVagas).fill(false)));
+      }
+      const vagasLivres = vagas.findIndex(v => !v);
+      if (vagasLivres === -1) {
+        alert('Sem vagas disponíveis!');
+        return;
+      }
+      vagas[vagasLivres] = true;
+      localStorage.setItem('vagas', JSON.stringify(vagas));
+      const entradas = JSON.parse(localStorage.getItem('entradas') || '[]');
+      entradas.push({ placa, entrada: new Date().toISOString(), vagaId: vagasLivres });
+      localStorage.setItem('entradas', JSON.stringify(entradas));
+      document.getElementById('placa-entrada').value = '';
+      atualizarVagas();
+      atualizarListaEntradas();
+      alert(`Entrada registrada para ${placa}!`);
+    };
+
+    // Mostrar formulário de cadastro
+    const mostrarCadastro = () => {
+      document.getElementById('cadastro-form').classList.remove('hidden');
+    };
+
+    // Fechar formulário de cadastro
+    const fecharCadastro = () => {
+      document.getElementById('cadastro-form').classList.add('hidden');
+    };
+
+    // Cadastrar veículo na página inicial
+    const cadastrarVeiculoHome = () => {
+      let placa = document.getElementById('placa-cadastro-home').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const modelo = document.getElementById('modelo-cadastro-home').value;
+      const proprietario = document.getElementById('proprietario-cadastro-home').value;
+      if (!placa || !modelo || !proprietario) {
+        alert('Preencha todos os campos!');
+        return;
+      }
+      if (!validarPlaca(placa)) {
+        alert('Placa inválida! Use o formato ABC1234 ou ABC1D23 (com ou sem hífen).');
+        return;
+      }
+      const veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+      if (veiculos.some(v => v.placa === placa)) {
+        alert('Veículo já cadastrado!');
+        return;
+      }
+      veiculos.push({ placa, modelo, proprietario });
+      localStorage.setItem('veiculos', JSON.stringify(veiculos));
+      alert('Veículo cadastrado com sucesso!');
+      document.getElementById('placa-cadastro-home').value = '';
+      document.getElementById('modelo-cadastro-home').value = '';
+      document.getElementById('proprietario-cadastro-home').value = '';
+      fecharCadastro();
+      atualizarListaVeiculos();
+    };
+
+    // Mostrar formulário de reserva
+    const mostrarReserva = () => {
+      document.getElementById('reserva-form').classList.remove('hidden');
+    };
+
+    // Fechar formulário de reserva
+    const fecharReserva = () => {
+      document.getElementById('reserva-form').classList.add('hidden');
+    };
+
+    // Salvar reserva
+    const salvarReserva = () => {
+      let placa = document.getElementById('placa-reserva').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const dataReserva = document.getElementById('data-reserva').value;
+      if (!placa || !dataReserva) {
+        alert('Preencha todos os campos!');
+        return;
+      }
+      if (!validarPlaca(placa)) {
+        alert('Placa inválida! Use o formato ABC1234 ou ABC1D23 (com ou sem hífen).');
+        return;
+      }
+      const reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+      reservas.push({ placa, dataReserva });
+      localStorage.setItem('reservas', JSON.stringify(reservas));
+      alert('Reserva confirmada!');
+      fecharReserva();
+    };
+
+    // Mostrar painel de admin
+    const mostrarAdmin = () => {
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('admin-panel').classList.remove('hidden');
+    };
+
+    // Login admin
+    const loginAdmin = () => {
+      const senha = document.getElementById('senha-admin').value;
+      if (senha === 'admin123') {
+        document.getElementById('login-admin').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+        atualizarListaVeiculos();
+        atualizarListaEntradas();
+        gerarRelatorio();
+        atualizarConfiguracoes();
+      } else {
+        alert('Senha incorreta!');
+      }
+    };
+
+    // Sair do painel admin
+    const sairAdmin = () => {
+      document.getElementById('admin-panel').classList.add('hidden');
+      document.getElementById('home').classList.remove('hidden');
+      document.getElementById('login-admin').classList.remove('hidden');
+      document.getElementById('admin-content').classList.add('hidden');
+    };
+
+    // Cadastrar veículo no painel admin
+    const cadastrarVeiculo = () => {
+      let placa = document.getElementById('placa-cadastro').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const modelo = document.getElementById('modelo-cadastro').value;
+      const proprietario = document.getElementById('proprietario-cadastro').value;
+      if (!placa || !modelo || !proprietario) {
+        alert('Preencha todos os campos!');
+        return;
+      }
+      if (!validarPlaca(placa)) {
+        alert('Placa inválida! Use o formato ABC1234 ou ABC1D23 (com ou sem hífen).');
+        return;
+      }
+      const veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+      if (veiculos.some(v => v.placa === placa)) {
+        alert('Veículo já cadastrado!');
+        return;
+      }
+      veiculos.push({ placa, modelo, proprietario });
+      localStorage.setItem('veiculos', JSON.stringify(veiculos));
+      alert('Veículo cadastrado com sucesso!');
+      document.getElementById('placa-cadastro').value = '';
+      document.getElementById('modelo-cadastro').value = '';
+      document.getElementById('proprietario-cadastro').value = '';
+      atualizarListaVeiculos();
+    };
+
+    // Registrar saída
+    const registrarSaida = () => {
+      let placa = document.getElementById('placa-saida').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!validarPlaca(placa)) {
+        alert('Placa inválida! Use o formato ABC1234 ou ABC1D23 (com ou sem hífen).');
+        return;
+      }
+      const entradas = JSON.parse(localStorage.getItem('entradas') || '[]');
+      const entrada = entradas.find(e => e.placa === placa && !e.saida);
+      if (!entrada) {
+        alert('Entrada não encontrada!');
+        return;
+      }
+      const tempo = (new Date() - new Date(entrada.entrada)) / (1000 * 60 * 60); // Horas
+      const tarifaHora = parseFloat(localStorage.getItem('config_tarifa') || '5');
+      const tarifa = (tempo * tarifaHora).toFixed(2); // Tarifa dinâmica
+      entrada.saida = new Date().toISOString();
+      entrada.tarifa = tarifa;
+      localStorage.setItem('entradas', JSON.stringify(entradas));
+      const vagas = JSON.parse(localStorage.getItem('vagas') || '[]');
+      vagas[entrada.vagaId] = false;
+      localStorage.setItem('vagas', JSON.stringify(vagas));
+      atualizarVagas();
+      atualizarListaEntradas();
+      alert(`Saída registrada! Tarifa: R$${tarifa} (Simulação de pagamento).`);
+      document.getElementById('placa-saida').value = '';
+      gerarRelatorio();
+    };
+
+    // Gerar relatório financeiro
+    const gerarRelatorio = () => {
+      const entradas = JSON.parse(localStorage.getItem('entradas') || '[]');
+      const total = entradas
+        .filter(e => e.tarifa)
+        .reduce((sum, e) => sum + parseFloat(e.tarifa || 0), 0)
+        .toFixed(2);
+      document.getElementById('total-arrecadado').textContent = total;
+    };
+
+    // Zerar relatório financeiro
+    const zerarRelatorio = () => {
+      if (!confirm('Tem certeza que deseja zerar o total financeiro? Isso removerá todas as tarifas registradas.')) {
+        return;
+      }
+      const entradas = JSON.parse(localStorage.getItem('entradas') || '[]');
+      entradas.forEach(e => delete e.tarifa);
+      localStorage.setItem('entradas', JSON.stringify(entradas));
+      gerarRelatorio();
+      alert('Total financeiro zerado com sucesso!');
+    };
+
+    // Salvar configurações de vagas e tarifa
+    const salvarConfiguracoes = () => {
+      const totalVagas = parseInt(document.getElementById('config-vagas').value);
+      const tarifa = parseFloat(document.getElementById('config-tarifa').value);
+      if (isNaN(totalVagas) || totalVagas < 1) {
+        alert('Insira um número válido de vagas (mínimo 1).');
+        return;
+      }
+      if (isNaN(tarifa) || tarifa < 0) {
+        alert('Insira uma tarifa válida (mínimo 0).');
+        return;
+      }
+      const vagasAtuais = JSON.parse(localStorage.getItem('vagas') || '[]');
+      const vagasOcupadas = vagasAtuais.filter(v => v).length;
+      if (totalVagas < vagasOcupadas) {
+        alert(`Não é possível reduzir para ${totalVagas} vagas: existem ${vagasOcupadas} vagas ocupadas.`);
+        return;
+      }
+      localStorage.setItem('config_vagas', totalVagas);
+      localStorage.setItem('config_tarifa', tarifa.toFixed(2));
+      localStorage.setItem('vagas', JSON.stringify(Array(totalVagas).fill(false).map((v, i) => vagasAtuais[i] || false)));
+      atualizarVagas();
+      alert('Configurações salvas com sucesso!');
+      document.getElementById('config-vagas').value = '';
+      document.getElementById('config-tarifa').value = '';
+    };
+
+    // Atualizar campos de configuração
+    const atualizarConfiguracoes = () => {
+      document.getElementById('config-vagas').value = localStorage.getItem('config_vagas') || '50';
+      document.getElementById('config-tarifa').value = localStorage.getItem('config_tarifa') || '5';
+    };
+
+    // Inicializar
+    initData();
+    atualizarVagas();
+  </script>
 </body>
 </html>
