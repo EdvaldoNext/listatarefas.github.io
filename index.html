@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -10,13 +9,28 @@
     body {
       font-family: 'Arial', sans-serif;
     }
+
+    /* Fundo da página inicial */
+    #home {
+        background-color: black;
+   /*   background: linear-gradient(to right, #7c3aed, #db2777); /* Gradiente roxo para rosa */
+      /* Para cor sólida, use: background-color: #1e40af; (azul escuro) */
+      /* Para imagem, use: background-image: url('background.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; */ */
+    }
+
+    /* Fundo do painel de administração */
+    #admin-panel {
+      background-color: black; /* Cinza claro */
+      /* Para cor sólida diferente, use: background-color: #d1d5db; (cinza mais escuro) */
+      /* Para gradiente, use: background: linear-gradient(to bottom, #e5e7eb, #9ca3af); */
+    }
   </style>
 </head>
-<body class="bg-gray-100">
+<body>
   <!-- Container Principal -->
   <div id="app" class="min-h-screen">
     <!-- Página Inicial -->
-    <div id="home" class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-green-500 text-white">
+    <div id="home" class="flex flex-col items-center justify-center min-h-screen text-white">
       <h1 class="text-4xl font-bold mb-4">Estacionamento Inteligente</h1>
       <p class="text-xl mb-2">Vagas Disponíveis: <span id="vagas-disponiveis">0</span>/<span id="total-vagas">50</span></p>
       <p class="text-lg mb-4">Tarifa: R$<span id="tarifa-hora">5</span>/hora</p>
@@ -55,7 +69,7 @@
     </div>
 
     <!-- Painel de Administração -->
-    <div id="admin-panel" class="hidden min-h-screen bg-gray-100 p-6">
+    <div id="admin-panel" class="hidden min-h-screen p-6">
       <div id="login-admin" class="flex flex-col items-center justify-center min-h-screen">
         <h2 class="text-3xl font-bold mb-4 text-blue-800">Login Admin</h2>
         <input id="senha-admin" type="password" placeholder="Digite a senha" class="p-2 rounded w-full max-w-xs mb-2">
@@ -301,7 +315,7 @@
     // Login admin
     const loginAdmin = () => {
       const senha = document.getElementById('senha-admin').value;
-      if (senha === 'admin123') {
+      if (senha === '') {
         document.getElementById('login-admin').classList.add('hidden');
         document.getElementById('admin-content').classList.remove('hidden');
         atualizarListaVeiculos();
